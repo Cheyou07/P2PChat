@@ -167,7 +167,8 @@ func BuildUI(ctx context.Context, ps *pubsub.PubSub, h host.Host) *UI {
 
 	// back button
 	backButton := tview.NewButton("BACK").SetSelectedFunc(func() {
-		resetForm(roomForm)
+		if (ui_state.chat_room != nil) { ui_state.chat_room.Leave() }
+
 		msgBox.Clear()
 		pages.SwitchToPage("RoomInput")
 		app.SetFocus(roomForm.GetFormItemByLabel("Room Name:"))
