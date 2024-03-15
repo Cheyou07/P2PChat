@@ -1,4 +1,4 @@
-# P2PChat (Computer Networks [UE22CS252B] Mini Project)
+## P2PChat (Computer Networks [UE22CS252B] Mini Project)
 
 To set up and run the P2PChat application, follow these instructions:
 
