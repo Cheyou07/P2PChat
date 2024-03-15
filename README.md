@@ -1,12 +1,10 @@
-# P2PChat
-
-## Getting Started
+# P2PChat (Computer Networks [UE22CS252B] Mini Project)
 
 To set up and run the P2PChat application, follow these instructions:
 
 ### Prerequisites
 
-- Go programming language installed on your system.
+- Go language installed on your system (can be installed from the [official Go website](https://golang.org/doc/install)).
 - Git installed on your system (optional, for cloning the repository).
 
 ### Installation
