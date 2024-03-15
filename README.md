@@ -23,7 +23,7 @@ To set up and run the P2PChat application, follow these instructions:
    cd P2PChat
    ```
 
-3. Ensure that Go modules are tidy:
+3. Ensure that required modules are installed:
 
    ```bash
    go mod tidy
