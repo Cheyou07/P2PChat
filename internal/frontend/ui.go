@@ -271,19 +271,19 @@ func (ui_state *UI) end() {
 }
 
 // reset all form items
-func resetForm(form *tview.Form) {
-	for index := 0; index < form.GetFormItemCount(); index++ {
-		item := form.GetFormItem(index)
-		switch item := item.(type) {
-		case *tview.InputField:
-			item.SetText("")
-		case *tview.DropDown:
-			item.SetCurrentOption(0)
-		case *tview.Checkbox:
-			item.SetChecked(true)
-		}
-	}
-}
+// func resetForm(form *tview.Form) {
+// 	for index := 0; index < form.GetFormItemCount(); index++ {
+// 		item := form.GetFormItem(index)
+// 		switch item := item.(type) {
+// 		case *tview.InputField:
+// 			item.SetText("")
+// 		case *tview.DropDown:
+// 			item.SetCurrentOption(0)
+// 		case *tview.Checkbox:
+// 			item.SetChecked(true)
+// 		}
+// 	}
+// }
 
 func refreshPeers(peersList *tview.TextView, cr *networking.ChatRoom, app *tview.Application) {
 	if cr == nil { return }
