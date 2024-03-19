@@ -21,31 +21,31 @@ import (
 
 type UI struct {
 	chat_room *networking.ChatRoom
-	app 			*tview.Application
-	peersList	*tview.TextView
-	pages 		*tview.Pages
+	app       *tview.Application
+	peersList *tview.TextView
+	pages     *tview.Pages
 
 	msgWriter io.Writer
 
-	inputCh 	chan string
-	doneCh 		chan struct{}
+	inputCh chan string
+	doneCh  chan struct{}
 }
 
 func BuildUI(ctx context.Context, ps *pubsub.PubSub, h host.Host) *UI {
 	app := tview.NewApplication()
 	var err error
-	
+
 	// initialise UI struct
 	ui_state := &UI{
 		chat_room: nil,
-		app: app,
+		app:       app,
 		peersList: nil,
 		msgWriter: nil,
-		inputCh: make(chan string, 32),
-		doneCh: make(chan struct{}, 1),
+		inputCh:   make(chan string, 32),
+		doneCh:    make(chan struct{}, 1),
 	}
 	peersListWidth := 20
-		
+
 	// calculate dimensions
 	// terminalFd := int(os.Stdout.Fd())
 	// boxWidth, boxHeight := 40, 10
@@ -79,15 +79,15 @@ func BuildUI(ctx context.Context, ps *pubsub.PubSub, h host.Host) *UI {
 	peersList.SetChangedFunc(func() { app.Draw() })
 
 	roomForm := tview.NewForm().
-		AddInputField("Room Name:", "gen", 30, nil, nil).SetLabelColor(tcell.ColorOrange)
+		AddInputField("Room Name:", "gen", 30, nil, nil).SetFieldTextColor(tcell.ColorWhite).SetLabelColor(tcell.ColorOrange)
 
 	loginForm := tview.NewForm().
-		AddInputField("First Name:", "", 20, nil, nil).SetLabelColor(tcell.ColorOrange).
-		AddInputField("Last Name:", "", 20, nil, nil).SetLabelColor(tcell.ColorOrange).
+		AddInputField("First Name:", "", 20, nil, nil).SetFieldTextColor(tcell.ColorWhite).SetLabelColor(tcell.ColorOrange).
+		AddInputField("Last Name:", "", 20, nil, nil).SetFieldTextColor(tcell.ColorWhite).SetLabelColor(tcell.ColorOrange).
 		AddDropDown("Gender:", []string{
-				"Male",
-				"Female",
-		}, 0, nil).SetFieldTextColor(tcell.ColorLightYellow).
+			"Male",
+			"Female",
+		}, 0, nil).SetFieldTextColor(tcell.ColorWhite).
 		AddCheckbox("Under development. Still wish to proceed?", true, nil).
 		AddCheckbox("First name & Last name must be 3 to 20 chars long!", false, nil)
 
@@ -102,34 +102,37 @@ func BuildUI(ctx context.Context, ps *pubsub.PubSub, h host.Host) *UI {
 			}
 			// names length max(20)
 			if utf8.RuneCountInString(firstName) > 20 || utf8.RuneCountInString(lastName) > 20 {
-					return
+				return
 			}
 
 			pages.SwitchToPage("RoomInput")
-		}).SetButtonTextColor(tcell.ColorLightYellow).
-		AddButton("Exit", func() { 
+		}).SetButtonTextColor(tcell.ColorWhite).
+		AddButton("Exit", func() {
 			app.Stop()
-		}).SetButtonTextColor(tcell.ColorLightYellow)
+		}).SetButtonTextColor(tcell.ColorWhite)
 
 	roomForm = roomForm.
-	AddButton("Join", func() {
-		roomName := roomForm.GetFormItemByLabel("Room Name:").(*tview.InputField).GetText()
+		AddButton("Join", func() {
+			roomName := roomForm.GetFormItemByLabel("Room Name:").(*tview.InputField).GetText()
 
-		// room name length range(3, 20)
-		if utf8.RuneCountInString(roomName) < 3 || utf8.RuneCountInString(roomName) > 20 {
-			return
-		}
+			// room name length range(3, 20)
+			if utf8.RuneCountInString(roomName) < 3 || utf8.RuneCountInString(roomName) > 20 {
+				return
+			}
 
-		firstName := loginForm.GetFormItemByLabel("First Name:").(*tview.InputField).GetText()
+			firstName := loginForm.GetFormItemByLabel("First Name:").(*tview.InputField).GetText()
 
-		ui_state.chat_room, err = networking.JoinCR(ctx, ps, h.ID(), firstName, roomName)
-		if err != nil { panic(err) }
+			ui_state.chat_room, err = networking.JoinCR(ctx, ps, h.ID(), firstName, roomName)
+			if err != nil {
+				panic(err)
+			}
 
-		msgBox.SetTitle(fmt.Sprintf("ROOM: %s", roomName))
-		pages.SwitchToPage("Chat")
-	}).AddButton("Exit", func() { 
-		app.Stop()
-	}).SetButtonTextColor(tcell.ColorLightYellow)
+			msgBox.SetTitle(fmt.Sprintf("ROOM: %s", roomName))
+			pages.SwitchToPage("Chat")
+		}).SetFieldTextColor(tcell.ColorWhite).
+		AddButton("Exit", func() {
+			app.Stop()
+		}).SetFieldTextColor(tcell.ColorWhite)
 
 	genderDropdown := loginForm.GetFormItemByLabel("Gender:").(*tview.DropDown)
 	genderDropdown.SetFieldWidth(20)
@@ -167,7 +170,9 @@ func BuildUI(ctx context.Context, ps *pubsub.PubSub, h host.Host) *UI {
 
 	// back button
 	backButton := tview.NewButton("BACK").SetSelectedFunc(func() {
-		if (ui_state.chat_room != nil) { ui_state.chat_room.Leave() }
+		if ui_state.chat_room != nil {
+			ui_state.chat_room.Leave()
+		}
 
 		msgBox.Clear()
 		pages.SwitchToPage("RoomInput")
@@ -183,10 +188,10 @@ func BuildUI(ctx context.Context, ps *pubsub.PubSub, h host.Host) *UI {
 	// on key enter
 	input.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEscape {
-			if (ui_state.chat_room != nil) { ui_state.chat_room.Leave() }
+			if ui_state.chat_room != nil { ui_state.chat_room.Leave() }
 
 			msgBox.Clear()
-			pages.SwitchToPage("RoomInput") 
+			pages.SwitchToPage("RoomInput")
 			app.SetFocus(roomForm.GetFormItemByLabel("Room Name:"))
 			return
 		}
@@ -232,28 +237,28 @@ func (ui_state *UI) startEventHandler(ctx context.Context) {
 
 	for {
 
-		if (ui_state.chat_room == nil) { continue }
+		if ui_state.chat_room == nil { continue }
 		currentPage, _ := ui_state.pages.GetFrontPage()
-		if (currentPage != "Chat") { continue }
+		if currentPage != "Chat" { continue }
 
 		select {
-			case input := <- ui_state.inputCh:
-				err := ui_state.chat_room.Publish(input)
-				if err != nil { printError("publish error: %s", err) }
+		case input := <-ui_state.inputCh:
+			err := ui_state.chat_room.Publish(input)
+			if err != nil { printError("publish error: %s", err) }
 
-				displayOutgoingMessage(input, ui_state.chat_room.GetName(), ui_state.msgWriter)
+			displayOutgoingMessage(input, ui_state.chat_room.GetName(), ui_state.msgWriter)
 
-			case m := <- ui_state.chat_room.Messages:
-				displayIncomingMessage(m, ui_state.msgWriter)
-			
-			case <- refreshPeersTicker.C:
-				refreshPeers(ui_state.peersList, ui_state.chat_room, ui_state.app)
+		case m := <-ui_state.chat_room.Messages:
+			displayIncomingMessage(m, ui_state.msgWriter)
 
-			case <- ctx.Done():
-				return
+		case <-refreshPeersTicker.C:
+			refreshPeers(ui_state.peersList, ui_state.chat_room, ui_state.app)
 
-			case <- ui_state.doneCh:
-				ui_state.doneCh <- struct{}{}
+		case <-ctx.Done():
+			return
+
+		case <-ui_state.doneCh:
+			ui_state.doneCh <- struct{}{}
 		}
 	}
 }
@@ -299,7 +304,7 @@ func refreshPeers(peersList *tview.TextView, cr *networking.ChatRoom, app *tview
 }
 
 func displayIncomingMessage(cm *chat.Message, msgWriter io.Writer) {
-	if (cm == nil) { return }
+	if cm == nil { return }
 
 	prompt := printWithColour("green", fmt.Sprintf("<%s>:", cm.SenderName))
 	fmt.Fprintf(msgWriter, "%s %s\n", prompt, cm.Message)
